@@ -75,7 +75,7 @@ services:
     mysql:
         image: mysql:8.0.26
         restart: always
-        command: --max_allowed_packet=20485760
+        command: --max_allowed_packet=209715200
         volumes:
             - ./app:/srv/www/api
             - ./dbdata:/var/lib/mysql
