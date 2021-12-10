@@ -3,7 +3,7 @@
 
 1. clone this repository
   ```
-    git clone https://github.com/Bramas/hotcrp-docker-compose
+    git clone https://github.com/hi-liang/hotcrp-docker-compose
     cd hotcrp-docker-compose
   ```
 2. clone hotcrp repository 
