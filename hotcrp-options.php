@@ -17,8 +17,8 @@ global $Opt;
 //   dbPassword      Password for database user.
 
 $Opt["dbName"] = $_ENV["MYSQL_DATABASE"];
-$Opt["dbUser"] = "root";
-$Opt["dbPassword"] = $_ENV["MYSQL_ROOT_PASSWORD"];
+$Opt["dbUser"] = $_ENV["MYSQL_USER"];
+$Opt["dbPassword"] = $_ENV["MYSQL_PASSWORD"];
 
 
 // GENERAL CONFIGURATION
@@ -214,7 +214,7 @@ $Opt["smartScoreCompare"] = true;
 //                   originate from localhost.
 
 
-$Opt["dsn"] = "mysql://root:".$_ENV["MYSQL_ROOT_PASSWORD"]."@mysql:3306/".$_ENV["MYSQL_DATABASE"];
+$Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@mysql:3306/".$_ENV["MYSQL_DATABASE"];
 // EXTERNAL SOFTWARE CONFIGURATION
 //
 //   dbHost          Database host. Defaults to localhost.

@@ -1,3 +1,13 @@
+# Base config that supports multiple deployments on same host
+#
+# Includes own SMTP, nginx, and php services
+#
+# By default `docker-compose` commands will include the override
+# config which will also bring up a database instance, unless
+# only this file is specified, e.g.:
+#
+# `docker-compose -f docker-compose.yaml up -d`
+
 version: '3'
  
 services:
@@ -50,10 +60,9 @@ services:
             - ./docker/php/php.conf:/usr/local/etc/php/conf.d/custom.ini:ro
             - ./logs/php:/var/log
         environment:
-            MYSQL_USER: hotcrp
-            MYSQL_PASSWORD: hotcrppwd
-            MYSQL_DATABASE: hotcrp
-            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: ${HOTCRP_DB_NAME:-hotcrp}
+            MYSQL_PASSWORD: ${HOTCRP_DB_PASSWORD:-hotcrppwd}
+            MYSQL_DATABASE: ${HOTCRP_DB_NAME:-hotcrp}
             HOTCRP_PAPER_SITE: ${HOTCRP_PAPER_SITE}
             HOTCRP_SHORT_NAME: ${HOTCRP_SHORT_NAME}
             HOTCRP_LONG_NAME: ${HOTCRP_LONG_NAME}
@@ -66,28 +75,12 @@ services:
         image: nginx:alpine
         restart: always
         ports:
-            - 9001:443
+            - ${HOTCRP_PORT:-9001}:443
         volumes:
             - ./app:/srv/www/api
             - ./logs/nginx:/var/log/nginx  
             - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
         depends_on:
             - php
  
-    mysql:
-        image: mysql:8.0.26
-        restart: always
-        command: --max_allowed_packet=209715200
-        volumes:
-            - ./app:/srv/www/api
-            - ./dbdata:/var/lib/mysql
-        expose:
-            - 3306
-        depends_on:
-            - php
-        environment:
-            MYSQL_USER: hotcrp
-            MYSQL_PASSWORD: hotcrppwd
-            MYSQL_DATABASE: hotcrp
-            MYSQL_ROOT_PASSWORD: root
-

@@ -1,0 +1,24 @@
+# Automatic override unless explicitly excluded by
+# `docker-compose` commands, this also brings up a
+# dedicated mariahdb database.
+
+version: '3'
+ 
+services:
+    mysql:
+        image: mariadb:10.7.1-focal
+        restart: always
+        command: --max_allowed_packet=209715200
+        volumes:
+            - ./app:/srv/www/api
+            - ./dbdata:/var/lib/mysql
+        expose:
+            - 3306
+        depends_on:
+            - php
+        environment:
+            MYSQL_USER: ${HOTCRP_DB_NAME:-hotcrp}
+            MYSQL_PASSWORD: ${HOTCRP_DB_PASSWORD:-hotcrppwd}
+            MYSQL_DATABASE: ${HOTCRP_DB_NAME:-hotcrp}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+
