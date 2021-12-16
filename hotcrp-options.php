@@ -44,6 +44,11 @@ $Opt["dbPassword"] = $_ENV["MYSQL_ROOT_PASSWORD"];
 //                   emails. Default is derived from the access URL.
 //   conferenceSite  [OPTIONAL] Conference site URL (CFP, registration).
 
+
+if(!empty($_ENV["HOTCRP_SHORT_NAME"]))
+    $Opt["shortName"] = $_ENV["HOTCRP_SHORT_NAME"];
+if(!empty($_ENV["HOTCRP_LONG_NAME"]))
+    $Opt["longName"] = $_ENV["HOTCRP_LONG_NAME"];
 if(!empty($_ENV["HOTCRP_PAPER_SITE"]))
     $Opt["paperSite"] = $_ENV["HOTCRP_PAPER_SITE"];
 
