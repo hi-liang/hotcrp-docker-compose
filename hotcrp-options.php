@@ -214,7 +214,7 @@ $Opt["smartScoreCompare"] = true;
 //                   originate from localhost.
 
 
-$Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@mysql:3306/".$_ENV["MYSQL_DATABASE"];
+$Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@".$_ENV["MYSQL_HOST"].":3306/".$_ENV["MYSQL_DATABASE"];
 // EXTERNAL SOFTWARE CONFIGURATION
 //
 //   dbHost          Database host. Defaults to localhost.
