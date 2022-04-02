@@ -229,3 +229,6 @@ $Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@".$_E
 //                   executions. Defaults to 8.
 //   zipCommand      Set to the path to the `zip` executable. Defaults to
 //                   `zip`.
+
+// Somehow needed to properly handle ~100MB pdfs
+$Opt["memoryLimit"] = "512M"; 
