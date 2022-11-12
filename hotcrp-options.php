@@ -212,7 +212,8 @@ $Opt["smartScoreCompare"] = true;
 //   allowLocalHttp  Only meaningful if redirectToHttps is set. If true, then
 //                   HotCRP will *not* redirect HTTP connections that
 //                   originate from localhost.
-
+$Opt["sessionSecure"] = True;
+$Opt["sessionLifetime"] = 2592000;
 
 $Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@".$_ENV["MYSQL_HOST"].":3306/".$_ENV["MYSQL_DATABASE"];
 // EXTERNAL SOFTWARE CONFIGURATION
