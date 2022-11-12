@@ -27,8 +27,7 @@ services:
     #        - 9002:8025
 
     smtp:
-        build:
-            context: ./docker/smtp
+        image: juanluisbaptiste/postfix:1.7.1
         restart: always
         expose:
             - "25"
@@ -43,8 +42,6 @@ services:
             SMTP_USERNAME: ${SMTP_USERNAME}
             SMTP_PASSWORD:  ${SMTP_PASSWORD}
             SERVER_HOSTNAME: ${SERVER_HOSTNAME}
-            DESTINATION_CONCURRENCY_LIMIT: "1"
-            DESTINATION_RATE_DELAY: "1s"
 
 
     php:
