@@ -135,6 +135,9 @@ $Opt["internalMailer"] = true;
 //   dbNoPapers      Set to true to not store papers in the database.
 //                   Requires filestore, S3 storage, or both.
 
+if(!empty($_ENV["HOTCRP_FILESYSTEM_DOCS"]))
+    $Opt["docstore"] = "/docs";
+    $Opt["dbNoPapers"] = True;
 
 // TIMES AND DATES
 //
@@ -161,7 +164,7 @@ $Opt["internalMailer"] = true;
 //
 //   favicon         Link to favicon. Default is images/review24.png.
 //   stylesheets     Array of additional stylesheet filenames/URIs to be
-//                   included after "style.css". Example: array("x.css").
+//                   included after "style.css". Example: ["x.css"].
 //   fontScript      HTML added to <head> before stylesheets.
 //   extraFooter     Extra HTML text shown at the bottom of every page, before
 //                   the HotCRP link. If set, should generally end with
@@ -184,7 +187,7 @@ $Opt["internalMailer"] = true;
 //                   for scores better than B (i.e., A), rather than scores
 //                   alphabetically after B (i.e., C or D).
 //   noFooterVersion Set to true to avoid a version comment in footer HTML.
-//   strictJavascript  If true, send Javascript with "use strict".
+//   strictJavascript If true, send Javascript with "use strict".
 //   hideManager     If set, PC members are not shown paper managers.
 //   disableCapabilities If set, emails to authors will not have a
 //                   token enabling them to view their papers without logging in.
@@ -232,4 +235,8 @@ $Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@".$_E
 //                   `zip`.
 
 // Somehow needed to properly handle ~100MB pdfs
-$Opt["memoryLimit"] = "512M"; 
+$Opt["memoryLimit"] = "512M";
+
+// Add Scripts for markdown rendering
+$Opt["scripts"] = ["/scripts/purify.min.js", "/scripts/marked.min.js", "scripts/markdown.js"];
+$Opt["defaultFormat"] = 1;

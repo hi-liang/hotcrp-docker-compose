@@ -19,9 +19,9 @@
   ```
   docker-compose exec mysql  /bin/sh -c "echo 'ok\nhotcrp\nhotcrppwd\nn\nY\n' | sh /srv/www/api/lib/createdb.sh --user=root --password=root"
   ```
-6. copy the default hotcrp configuration
+6. copy the hotcrp configuration and script files
   ```
-  mv hotcrp-options.php app/conf/options.php
+  cp -r hotcrp_files/ app/
   ```
 7. open `localhost:9001`
 
