@@ -179,6 +179,7 @@ if(!empty($_ENV["HOTCRP_FILESYSTEM_DOCS"]))
 //   phpSuffix       The suffix for generated HotCRP URLs. Usually empty; for
 //                   some configurations, you may want to set it to ".php".
 
+$Opt["stylesheets"] = ["https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css"];
 
 // BEHAVIOR OPTIONS
 //
@@ -238,5 +239,5 @@ $Opt["dsn"] = "mysql://".$_ENV["MYSQL_USER"].":".$_ENV["MYSQL_PASSWORD"]."@".$_E
 $Opt["memoryLimit"] = "512M";
 
 // Add Scripts for markdown rendering
-$Opt["scripts"] = ["/scripts/purify.min.js", "/scripts/marked.min.js", "scripts/markdown.js"];
+$Opt["scripts"] = ["/scripts/purify.min.js", "/scripts/marked.min.js", "scripts/marked-katex.umd.js", "scripts/markdown.js"];
 $Opt["defaultFormat"] = 1;

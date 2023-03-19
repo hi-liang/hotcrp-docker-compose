@@ -1,8 +1,13 @@
 (() => {
+    marked.use(markedKatex({
+        throwOnError: false,
+        output: 'htmlAndMathml',
+    }));
     const purifyOpts = {
         USE_PROFILES: {html: true},
         FORBID_TAGS: ['style', 'img'],
-        FORBID_ATTR: ['style'],
+        ADD_TAGS: ['svg', 'path'],
+        ADD_ATTR: ['height', 'width', 'viewBox', 'd'],
         ALLOW_DATA_ATTR: false,
         SANITIZE_NAMED_PROPS: true,
     };
@@ -23,4 +28,3 @@
         description: 'Markdown styling',
     });
 })();
-
