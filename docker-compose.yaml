@@ -52,11 +52,12 @@ services:
             - 9000
         restart: always
         volumes:
-            - ./app:/srv/www/api
+            - ./app:/srv/www/api:ro
             - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
             - ./docker/php/msmtprc:/etc/msmtprc
             - ./docker/php/php.conf:/usr/local/etc/php/conf.d/custom.ini:ro
             - ./logs/php:/var/log
+            - ./docs:/docs
         environment:
             MYSQL_USER: ${HOTCRP_DB_NAME:-hotcrp}
             MYSQL_PASSWORD: ${HOTCRP_DB_PASSWORD:-hotcrppwd}
