@@ -135,8 +135,8 @@ $Opt["internalMailer"] = true;
 //   dbNoPapers      Set to true to not store papers in the database.
 //                   Requires filestore, S3 storage, or both.
 
+$Opt["docstore"] = "/docs";
 if(!empty($_ENV["HOTCRP_FILESYSTEM_DOCS"]))
-    $Opt["docstore"] = "/docs";
     $Opt["dbNoPapers"] = True;
 
 // TIMES AND DATES
