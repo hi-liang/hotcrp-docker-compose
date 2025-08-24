@@ -1,0 +1,4 @@
+services:
+    php:
+        volumes:
+            - ./hotcrp_files/overrides/src/conflict.php:/srv/www/api/src/conflict.php:ro

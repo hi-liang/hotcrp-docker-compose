@@ -1,4 +1,0 @@
-services:
-    php:
-        volumes:
-            - ./hotcrp_files/override:/srv/www/api:ro
