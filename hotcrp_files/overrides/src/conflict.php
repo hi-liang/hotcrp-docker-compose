@@ -1,6 +1,6 @@
 <?php
 // conflict.php -- HotCRP conflict type class
-// Copyright (c) 2008-2022 Eddie Kohler; see LICENSE.
+// Copyright (c) 2008-2025 Eddie Kohler; see LICENSE.
 
 class Conflict {
     /** @var Conf */
@@ -10,7 +10,14 @@ class Conflict {
     /** @var array<int,string> */
     private $_tmap = [];
 
+    /** @deprecated */
     const GENERAL = 2;
+    const CT_DEFAULT = 2;
+    const CT_ADMINISTRATIVE = 28;
+    const CT_GENERIC = 30;
+    const F_PIN = 1;
+    const FM_PC = 31;
+    const FM_PCTYPE = 30;
 
     static private $desc_map = [
         2 => "Co-author",
@@ -22,10 +29,11 @@ class Conflict {
         18 => "Advisee",
         8 => "Personal",
         10 => "Other (please submit explanation)",
+        28 => "Administrative"
     ];
     static private $json_map = [
         2 => "coauthor",
-        12 => "coworker",        
+        12 => "coworker",
         6 => "institutional",
         14 => "research_collaborator",
         16 => "funding_collaborator",
@@ -33,8 +41,8 @@ class Conflict {
         18 => "advisee",
         8 => "personal",
         10 => "other",
+        28 => "administrative"
     ];
-    
 
     /** @param int $ct
      * @return bool */
@@ -60,8 +68,29 @@ class Conflict {
     /** @param int $ct
      * @return int */
     static function pc_part($ct) {
-        return $ct & 31;
+        return $ct & self::FM_PC;
     }
+
+    /** @param int $old
+     * @param int $new
+     * @param bool $admin
+     * @return int */
+    static function apply_pc($old, $new, $admin) {
+        assert(($new & ~self::FM_PC) === 0);
+        if (!$admin && ($old & 1) !== 0) {
+            return $old;
+        }
+        if (!$admin && ($new & self::FM_PCTYPE) === self::CT_ADMINISTRATIVE) {
+            $new = ($new & ~self::FM_PCTYPE)
+                | ($old & self::FM_PCTYPE ? : self::CT_GENERIC);
+        }
+        if (($new & self::FM_PCTYPE) === self::CT_GENERIC) {
+            $new = ($new & ~self::FM_PCTYPE)
+                | ($old & self::FM_PCTYPE ? : ($admin ? self::CT_ADMINISTRATIVE : self::CT_DEFAULT));
+        }
+        return $admin ? $new : $new & ~1;
+    }
+
     /** @param int $ct1
      * @param int $ct2
      * @return int */
@@ -70,13 +99,14 @@ class Conflict {
             || ($ct2 >= CONFLICT_AUTHOR && $ct1 < CONFLICT_AUTHOR)) {
             $ct1 |= CONFLICT_CONTACTAUTHOR;
         }
-        if (($ct2 & CONFLICT_PCMASK) !== 0
-            && (($ct1 & CONFLICT_PCMASK) === 0
+        if (($ct2 & self::FM_PC) !== 0
+            && (($ct1 & self::FM_PC) === 0
                 || (($ct1 & 1) === 0 && ($ct2 & 1) !== 0))) {
-            $ct1 = ($ct1 & ~CONFLICT_PCMASK) | ($ct2 & CONFLICT_PCMASK);
+            $ct1 = ($ct1 & ~self::FM_PC) | ($ct2 & self::FM_PC);
         }
         return $ct1;
     }
+
 
     function __construct(Conf $conf) {
         $this->conf = $conf;
@@ -87,42 +117,50 @@ class Conflict {
     function want_description() {
         return $this->_desc;
     }
-    
+
     /** @return list<int> */
     function basic_conflict_types() {
         return array_keys(self::$desc_map);
     }
 
     /** @param string $text
-     * @param int $old
      * @return int|false */
-    function parse_assignment($text, $old) {
-        // Returns a conflict type
+    function parse_assignment($text) {
         if ($text === true) {
-            return $old > CONFLICT_MAXUNCONFLICTED ? $old : Conflict::GENERAL;
+            return Conflict::CT_DEFAULT;
         } else if ($text === false) {
             return 0;
         }
-        $pinned = null;
-        $ct = null;
+
+        $pin = $ct = null;
         $au = 0;
         foreach (explode(" ", strtolower($text)) as $w) {
-            $thisct = null;
-            if ($w === "pin" || $w === "pinned") {
-                $pinned = true;
-            } else if ($w === "unpin" || $w === "unpinned") {
-                $pinned = false;
-            } else if ($w === "none" || $w === "unconflicted" || $w === "noconflict" || $w === "n" || $w === "no" || $w === "0") {
-                $thisct = 0;
-            } else if ($w === "conflict" || $w === "conflicted" || $w === "y" || $w === "yes" || $w === "1") {
-                $thisct = $old > CONFLICT_MAXUNCONFLICTED ? $old : Conflict::GENERAL;
+            if ($w === "pin" || $w === "pinned" || $w === "unpin" || $w === "unpinned") {
+                $p = $w[0] === "p";
+                if ($pin !== null && $pin !== $p) {
+                    return false;
+                }
+                $pin = $p;
+                continue;
             } else if ($w === "author") {
                 $au |= CONFLICT_AUTHOR;
+                continue;
             } else if ($w === "contact") {
                 $au |= CONFLICT_CONTACTAUTHOR;
+                continue;
+            }
+
+            $xct = null;
+            if ($w === "none" || $w === "n" || $w === "no" || $w === "0" || $w === "off"
+                || $w === "unconflicted" || $w === "noconflict"
+                || $w === "nonconflict" || $w === "non-conflict") {
+                $xct = 0;
+            } else if ($w === "y" || $w === "yes" || $w === "1" || $w === "on"
+                       || $w === "conflicted" || $w === "conflict") {
+                $xct = self::CT_GENERIC;
             } else if ($w === "coauthor") {
                 $xct = 2;
-            } else if ($w === "student" || $w === "advisor") {
+            } else if ($w === "advisor") {
                 $xct = 4;
             } else if ($w === "institution" || $w === "institutional") {
                 $xct = 6;
@@ -136,41 +174,50 @@ class Conflict {
                 $xct = 14;
             } else if ($w === "funding_collaborator") {
                 $xct = 16;
-            } else if ($w === "advisee") {
-                $xct = 18;
+            } else if ($w === "student" || $w === "advisee") {
+                $xct = 18;                
+            } else if ($w === "admin" || $w === "administrative" || $w === "administrator") {
+                $xct = self::CT_ADMINISTRATIVE;
             } else if (ctype_digit($w)) {
-                $thisct = (int) $w;
+                $xct = intval($w);
+                if (($xct & 1) !== 0 || $w > 30) {
+                    return false;
+                }
             } else if ($w !== "") {
                 return false;
             }
-            if ($thisct !== null) {
-                if ($ct !== null && $ct !== $thisct) {
-                    return false;
-                }
-                $ct = $thisct;
+
+            if ($ct === self::CT_GENERIC && $xct > 0) {
+                $ct = $xct;
+            } else if ($xct === self::CT_GENERIC && $ct !== null && $ct > 0) {
+                $xct = $ct;
             }
+            if ($ct !== null && $xct !== $ct) {
+                return false;
+            }
+            $ct = $xct;
         }
-        if (($au !== 0 || is_bool($pinned)) && $ct === null) {
-            $ct = $old;
-        }
-        if ($ct !== null) {
-            return self::set_pinned($au | $ct, $pinned ?? (($ct & 1) !== 0));
-        } else {
+
+        if ($au === 0 && $ct === null && $pin === null) {
             return false;
         }
+        if ($pin !== null && $ct === null) {
+            $ct = self::CT_GENERIC;
+        }
+        return $au | ($ct ?? 0) | ($pin ? 1 : 0);
     }
 
-    /** @return int|false */
+    /** @param mixed $j
+     * @return int|false */
     function parse_json($j) {
         if (is_bool($j)) {
-            return $j ? self::GENERAL : 0;
+            return $j ? self::CT_GENERIC : 0;
         } else if (is_int($j)) {
             return $j;
         } else if (is_string($j)) {
-            return $this->parse_assignment($j, 0);
-        } else {
-            return false;
+            return $this->parse_assignment($j);
         }
+        return false;
     }
 
     /** @param int $ct */
@@ -182,7 +229,8 @@ class Conflict {
                 $t = "Contact";
             } else if ($ct >= CONFLICT_AUTHOR) {
                 $t = "Author";
-            } else if ($ct === (self::GENERAL | 1)) {
+            } else if ($ct === (self::CT_DEFAULT | 1)
+                       || $ct === (self::CT_ADMINISTRATIVE | 1)) {
                 $t = "Pinned conflict";
             } else if ($this->_desc && isset(self::$desc_map[$ct & ~1])) {
                 $t = self::$desc_map[$ct & ~1];
@@ -194,13 +242,28 @@ class Conflict {
         return $this->_tmap[$ct];
     }
 
-    /** @param int $ct */
-    function unparse_selector_text($ct) {
-        if (($ct & 1) !== 0 && $ct !== (self::GENERAL | 1)) {
-            return "Pinned " . lcfirst($this->unparse_text($ct & ~1));
-        } else {
-            return $this->unparse_text($ct);
+    /** @param list<int> $cts
+     * @param bool $admin
+     * @return array */
+    function selector_options($cts, $admin) {
+        $sopt = ["No conflict"];
+        foreach ($this->basic_conflict_types() as $ct) {
+            if ($admin || $ct !== self::CT_ADMINISTRATIVE)
+                $sopt[$ct] = $this->unparse_text($ct);
         }
+        foreach ($cts as $ct) {
+            if (!isset($sopt[$ct & ~1]))
+                $sopt[$ct & ~1] = $this->unparse_text($ct & ~1);
+        }
+        if ($admin) {
+            $sopt["xsep"] = null;
+            $sopt[self::CT_ADMINISTRATIVE | self::F_PIN] = "Pinned conflict";
+            foreach ($cts as $ct) {
+                if (!isset($sopt[$ct]))
+                    $sopt[$ct] = "Pinned " . lcfirst($this->unparse_text($ct & ~1));
+            }
+        }
+        return $sopt;
     }
 
     /** @param int $ct
@@ -214,9 +277,8 @@ class Conflict {
     function unparse_text_description($ct)  {
         if (!$this->_desc && isset(self::$desc_map[$ct & ~1])) {
             return $this->conf->_c("conflict_type", self::$desc_map[$ct & ~1]);
-        } else {
-            return $this->unparse_text($ct);
         }
+        return $this->unparse_text($ct);
     }
 
     /** @param int $ct
@@ -232,9 +294,8 @@ class Conflict {
             return "N";
         } else if (!$this->_desc) {
             return "Y";
-        } else {
-            return $this->unparse_text($ct);
         }
+        return $this->unparse_text($ct);
     }
 
     /** @param int $ct
@@ -242,7 +303,7 @@ class Conflict {
     function unparse_json($ct) {
         if ($ct <= 0) {
             return false;
-        } else if (!$this->_desc && $ct === self::GENERAL) {
+        } else if (!$this->_desc && $ct === self::CT_DEFAULT) {
             return true;
         }
         $w = [];
@@ -271,8 +332,8 @@ class Conflict {
         $j = $this->unparse_json($ct);
         if (is_bool($j)) {
             return $j ? "conflict" : "no";
-        } else {
-            return $j;
         }
+        return $j;
     }
 }
+
