@@ -247,3 +247,5 @@ $Opt["scripts"] = [
     "/scripts/markdown.js"
 ];
 $Opt["defaultFormat"] = 1;
+
+$Opt["searchKeywords"][] = '{"name": "registration", "require": "conf/st_registration.php", "parse_function": "Registration_SearchTerm::parse"}';
