@@ -5,8 +5,17 @@
 
 version: 2
 updates:
-  - package-ecosystem: "docker"
+  - package-ecosystem: "docker-compose"
     directory: "/"
+    cooldown:
+      default-days: 7    
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "America/New_York"
+  - package-ecosystem: "docker"
+    directory: "/docker/php"
     cooldown:
       default-days: 7    
     schedule:
