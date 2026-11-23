@@ -6,7 +6,7 @@ version: '3'
  
 services:
     mysql:
-        image: mariadb:10.7.1-focal
+        image: mariadb:10.8.2-focal
         restart: always
         command: --max_allowed_packet=209715200
         volumes:
